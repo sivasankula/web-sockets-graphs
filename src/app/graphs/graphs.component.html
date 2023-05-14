@@ -1,0 +1,114 @@
+<div class="graph__container">
+    <div class="graph__data">
+        <div class="select__container">
+            <div>
+                <div><label>Blade Type</label></div>
+                <select>
+                    <option>Select</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div>
+                <div>
+                    <label>Spare Cap No.</label>
+                </div>
+                <select>
+                    <option>Select</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div>
+                <div>
+                    <label>Spare Cap Type.</label>
+                </div>
+
+                <select>
+                    <option>Select</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div>
+                <div>
+                    <label>Plank No.</label>
+                </div>
+                <select>
+                    <option>Select</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div>
+                <div>
+                    <label>Diffect Classification</label>
+                </div>
+                <select>
+                    <option>Select</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                    <option>10</option>
+                </select>
+            </div>
+           
+        </div>
+        <div class="scan__buttons">
+            <div>
+                <button [disabled]="btnDisabled" class="start__button" (click)="getApiResponse()">Scan Start</button>
+            </div>
+            <div>
+                <button class="stop__button" (click)="stopApiResponse()">Scan Stop</button>
+            </div>
+        </div>
+        <div class="scan__graph__container">
+            <div class="live_scan_image__container">
+                <label>Live scan image</label>
+                <div class="chart__1__container">
+                    <div>
+                        <ng-template [ngIf]="!isScanStarted">
+                            <div><p>CHART 1</p></div>
+                        </ng-template>
+                        <div id="chart" class="chart__1"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="live_amplitude__container">
+                <label>Live Amplitude</label>
+                <div class="chart__2__container">
+                    <div>
+                        <p>CHART 2</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="plank__scan__container">
+            <div class="plank__scan__graph">
+            <ng-template [ngIf]="!isShowScanImage">
+                    <div>
+                        <p>Coil #</p>
+                    </div>
+                    <div>
+                        <p>Scan Image</p>
+                    </div>
+                    <div>
+                        <p>Plank width</p>
+                    </div>
+            </ng-template>
+            <div id="chart_scan" class="chart__1"></div>
+        </div>           
+            <div class="plan__scan__text">
+                <p>Plank Width</p>
+            </div>
+        </div>
+    </div>
+</div>
