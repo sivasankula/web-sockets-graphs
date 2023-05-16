@@ -67,12 +67,15 @@
                 <button [disabled]="btnDisabled" class="start__button" (click)="getApiResponse()">Scan Start</button>
             </div>
             <div>
-                <button class="stop__button" (click)="stopApiResponse()">Scan Stop</button>
+                <button  [disabled]="!isScanEnable" class="stop__button" (click)="stopApiResponse()">Scan Stop</button>
             </div>
         </div>
         <div class="scan__graph__container">
             <div class="live_scan_image__container">
                 <label>Live scan image</label>
+                <ng-template [ngIf]="isScanStarted">
+                    <span class="time__show">{{scanTime}}</span>
+                </ng-template>
                 <div class="chart__1__container">
                     <div>
                         <ng-template [ngIf]="!isScanStarted">
@@ -86,7 +89,10 @@
                 <label>Live Amplitude</label>
                 <div class="chart__2__container">
                     <div>
-                        <p>CHART 2</p>
+                        <ng-template [ngIf]="!isClickedAny">
+                            <div><p>CHART 2</p></div>
+                        </ng-template>
+                        <div id="chart_liveAmp" class="chart__1" ></div>
                     </div>
                 </div>
             </div>
