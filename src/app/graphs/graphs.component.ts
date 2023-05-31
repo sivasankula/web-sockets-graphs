@@ -25,6 +25,7 @@ export class GraphsComponent implements OnInit, AfterViewInit {
 
 
   getApiResponse = () =>{
+  
 
     if(this.chartScan){
     this.chartScan.destroy();
@@ -49,18 +50,31 @@ export class GraphsComponent implements OnInit, AfterViewInit {
     const seconds = String(currentDate.getSeconds()).padStart(2, '0');
     const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
     this.scanTime = formattedDate;
+    function generateHeatmapData(numSeries: number, distance:number): any[] {
+      const seriesData: any[] = [];
+    
+      for (let i = 0; i < 10; i++) {
+        const data = [];
+        for(let j = 1 ; j<= 1; j++){
+          const point = { x: j*5, y:  Math.floor(Math.random() * 101) , heat: Math.floor(Math.random() * 101) };
+          data.push(point);
+        }
+          seriesData.push({
+          name: `coil_A${i + 1}`,
+          data: data
+        });
+      }
+      console.log('ser',seriesData)
+    
+      return seriesData;
+    }
+    this.chartData =  generateHeatmapData(1, 0.9)
     this.chart = new ApexCharts(document.querySelector('#chart'), {
-      series: [
-        {
-          data: this.chartData,
-        },
-      ],
       chart: {
-        type: 'bar',
-        height: 200,
-        width: 400,
+        type: 'heatmap',
         events: {
           dataPointSelection: (event: any, chartContext: any, config: any) => {
+            console.log('--',event,'3--', chartContext,'00', config,'000', this.chartData)
               if(this.chartLiveAmp){
                 this.chartLiveAmp.destroy()
               this.chartLiveAmp = null;
@@ -68,13 +82,14 @@ export class GraphsComponent implements OnInit, AfterViewInit {
               console.log(config.dataPointIndex, config);
               this.isClickedAny = true;
               this.clickedRecord = config.dataPointIndex;
-
+              console.log( [{ label: this.chartData[config.seriesIndex].name, value: this.chartData[config.seriesIndex].data[config.dataPointIndex].y}],'ssss')
               this.chartLiveAmp = new ApexCharts(
                 document.querySelector('#chart_liveAmp'),
                 {
                   series: [
                     {
-                      data: [this.chartData[config.dataPointIndex]],
+                      // data:   [{ label: this.chartData[config.seriesIndex].name, value: this.chartData[config.seriesIndex].data[config.dataPointIndex].y}],
+                      data:[ this.chartData[config.seriesIndex].data[config.dataPointIndex].y]
                     },
                   ],
                   chart: {
@@ -82,23 +97,56 @@ export class GraphsComponent implements OnInit, AfterViewInit {
                     height: 200,
                     width: 300,
                   },
+                  labels: [this.chartData[config.seriesIndex].name] 
                 }
               );
 
               this.chartLiveAmp.render();
           },
         },
+        toolbar: {
+          show: false
+        }
       },
-      xaxis: null,
+      plotOptions: {
+        heatmap: {
+          colorScale: {
+            ranges: [
+              { from: 0, to: 50, color: '#FFD2D2' }, // Light red for the range 0-50
+              { from: 50, to: 100, color: '#FF0000' } // Dark red for the range 50-100
+            ]
+          }
+        }
+      },
+      dataLabels: {
+        enabled: false
+      },
+      xaxis: {
+        type: 'numeric'
+      },
+      series: this.chartData
+    
     });
   
     this.chart.render();
 
     this.btnDisabled = true
+    let count = 0
+
+    // example --
+    const interval = setInterval(()=>{
+      this.updateChartData(1)
+    },2000)
+
+    setTimeout(() => {
+      clearInterval(interval)
+      console.log('---sss')
+    }, 10000);
     this.socket.onmessage = (e:any)=>{
       // console.log(e.data)
-     
+     if(count%3 === 0)
       this.updateChartData(parseInt(e.data))
+      count++
     }
     this.socket.onclose = (e:any)=>{
       this.socket = new WebSocket("ws://localhost:8080");
@@ -109,17 +157,22 @@ export class GraphsComponent implements OnInit, AfterViewInit {
 
   updateChartData(newData: number) {
     // Add the new data to the chart data array
-    this.chartData.push(newData);
+    this.chartData = this.chartData.map((item:any)=>{
+      console.log(item)
+      item.data.push({x: 20, y: Math.floor(Math.random() * 101), heat:Math.floor(Math.random() * 101)})
+      return {...item}
+    })
   
     // Limit the chart data array to a maximum of 10 items
     if (this.chartData.length > 10) {
       // this.chartData.shift();
     }
   
+    
     // Update the chart series with the new data
-    this.chart.updateSeries([{
-      data: this.chartData
-    }]);
+    this.chart.updateSeries(this.chartData);
+
+    
   }
   
 
