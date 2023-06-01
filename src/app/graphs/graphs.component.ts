@@ -21,12 +21,14 @@ export class GraphsComponent implements OnInit, AfterViewInit {
   clickedRecord:any
   isClickedAny:boolean = false
   scanTime:any
+  randomNumber:any = 2
   constructor() { }
 
 
   getApiResponse = () =>{
   
 
+    this.randomNumber = 2
     if(this.chartScan){
     this.chartScan.destroy();
     this.chartScan = null;
@@ -79,25 +81,29 @@ export class GraphsComponent implements OnInit, AfterViewInit {
                 this.chartLiveAmp.destroy()
               this.chartLiveAmp = null;
               }
-              console.log(config.dataPointIndex, config);
+              console.log(config.dataPointIndex, config,this.chartData[config.seriesIndex]);
               this.isClickedAny = true;
               this.clickedRecord = config.dataPointIndex;
-              console.log( [{ label: this.chartData[config.seriesIndex].name, value: this.chartData[config.seriesIndex].data[config.dataPointIndex].y}],'ssss')
+              // console.log( [{ label: this.chartData[config.seriesIndex].name, value: this.chartData[config.seriesIndex].data[config.dataPointIndex].y}],'ssss')
               this.chartLiveAmp = new ApexCharts(
                 document.querySelector('#chart_liveAmp'),
                 {
                   series: [
                     {
                       // data:   [{ label: this.chartData[config.seriesIndex].name, value: this.chartData[config.seriesIndex].data[config.dataPointIndex].y}],
-                      data:[ this.chartData[config.seriesIndex].data[config.dataPointIndex].y]
+                      // data:[ this.chartData[config.seriesIndex].data[config.dataPointIndex].y]
+                      data: this.chartData[config.seriesIndex].data.map((k:any)=>k.y)
                     },
                   ],
                   chart: {
-                    type: 'bar',
+                    type: 'line',
                     height: 200,
                     width: 300,
                   },
-                  labels: [this.chartData[config.seriesIndex].name] 
+                  labels: this.chartData[config.seriesIndex].data.map((k:any)=>k.x),
+                  stroke: {
+                    curve: 'smooth',
+                  },
                 }
               );
 
@@ -159,9 +165,10 @@ export class GraphsComponent implements OnInit, AfterViewInit {
     // Add the new data to the chart data array
     this.chartData = this.chartData.map((item:any)=>{
       console.log(item)
-      item.data.push({x: 20, y: Math.floor(Math.random() * 101), heat:Math.floor(Math.random() * 101)})
+      item.data.push({x: this.randomNumber*5, y: Math.floor(Math.random() * 101), heat:Math.floor(Math.random() * 101)})
       return {...item}
     })
+    this.randomNumber = this.randomNumber+1
   
     // Limit the chart data array to a maximum of 10 items
     if (this.chartData.length > 10) {
@@ -183,16 +190,32 @@ export class GraphsComponent implements OnInit, AfterViewInit {
     this.isShowScanImage = true
     this.isScanEnable = false
 
-    console.log(this.chartData)
+    console.log(this.chartData,this.chartData.map((a:any)=>{
+      console.log(a,a.data.map((k:any)=>k.y),)
+      return {
+        name:a.name,
+        data:a.data.map((k:any)=>k.y),
+      }
+    }))
     this.chartScan = new ApexCharts(document.querySelector("#chart_scan"), {
-      series: [{
-        data: this.chartData
-      }],
+      // series: [{
+      //   data: this.chartData
+      // }],
+      series: this.chartData.map((a:any)=>{
+        return {
+          name:a.name,
+          data:a.data.map((k:any)=>k.y),
+        }
+      }),
       chart: {
         type: 'line',
         height: 170,
         width:800
       },
+      labels: this.chartData[0].data.map((k:any)=>k.x),
+      stroke: {
+          curve: 'smooth',
+        },
     
     });
   
