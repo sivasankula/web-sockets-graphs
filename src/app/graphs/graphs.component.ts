@@ -1,5 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import * as ApexCharts from 'apexcharts';
+import * as Papa from 'papaparse';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-graphs',
@@ -22,9 +24,46 @@ export class GraphsComponent implements OnInit, AfterViewInit {
   isClickedAny:boolean = false
   scanTime:any
   randomNumber:any = 2
-  constructor() { }
+  constructor(private http: HttpClient) {}
 
 
+  readCSVFile = async () => {
+    await this.http.get('assets/sample.csv', { responseType: 'text' })
+      .subscribe(
+        data => {
+          const parsedData = Papa.parse(data, { header: true }).data;
+          console.log(parsedData, typeof parsedData[0]);
+          const obj:any = parsedData[0]
+          const obj1 = {...obj}
+          delete obj1.id
+          const itemsList = Object.keys(obj1)
+          console.log(itemsList)
+          const seriesData: any[] = [];
+          itemsList.forEach((i)=>{
+            const data:any = [];
+            parsedData.slice(0,1000).forEach((j:any)=>{
+              // console.log(j)
+              const point = { x: j.id, y:  JSON.parse(j[i]) , heat:  JSON.parse(j[i]) };
+              data.push(point);
+            })
+              seriesData.push({
+              name: `coil_A${i + 1}`,
+              data: data
+            });
+          })
+          console.log('ss', parsedData.slice(100))
+          this.chartData = seriesData
+          this.updateChartData1(seriesData);
+          return seriesData
+
+          // Perform further processing on the parsed data
+        },
+        error => {
+          console.error('Error reading CSV file:', error);
+          return []
+        }
+      );
+  }
   getApiResponse = () =>{
   
 
@@ -35,7 +74,7 @@ export class GraphsComponent implements OnInit, AfterViewInit {
     }
     if(this.chartLiveAmp){
       this.chartLiveAmp.destroy()
-    this.chartLiveAmp = null;
+      this.chartLiveAmp = null;
     }
 
 
@@ -70,7 +109,16 @@ export class GraphsComponent implements OnInit, AfterViewInit {
     
       return seriesData;
     }
-    this.chartData =  generateHeatmapData(1, 0.9)
+    // uncomment for normal data
+    // this.chartData =  generateHeatmapData(1, 0.9)
+
+    // csv data
+    // this.chartData = this.readCSVFile()
+    this.readCSVFile().then((res)=>{
+      console.log(res)
+    })
+    console.log(this.chartData, 'chratd')
+
     this.chart = new ApexCharts(document.querySelector('#chart'), {
       chart: {
         type: 'heatmap',
@@ -100,7 +148,7 @@ export class GraphsComponent implements OnInit, AfterViewInit {
                     height: 200,
                     width: 300,
                   },
-                  labels: this.chartData[config.seriesIndex].data.map((k:any)=>k.x),
+                  // labels: this.chartData[config.seriesIndex].data.map((k:any)=>k.x),
                   stroke: {
                     curve: 'smooth',
                   },
@@ -112,7 +160,7 @@ export class GraphsComponent implements OnInit, AfterViewInit {
         },
         toolbar: {
           show: false
-        }
+        },
       },
       plotOptions: {
         heatmap: {
@@ -127,9 +175,7 @@ export class GraphsComponent implements OnInit, AfterViewInit {
       dataLabels: {
         enabled: false
       },
-      xaxis: {
-        type: 'numeric'
-      },
+      xaxis: null,
       series: this.chartData
     
     });
@@ -140,14 +186,14 @@ export class GraphsComponent implements OnInit, AfterViewInit {
     let count = 0
 
     // example --
-    const interval = setInterval(()=>{
-      this.updateChartData(1)
-    },2000)
+    // const interval = setInterval(()=>{
+    //   this.updateChartData(1)
+    // },2000)
 
-    setTimeout(() => {
-      clearInterval(interval)
-      console.log('---sss')
-    }, 10000);
+    // setTimeout(() => {
+    //   clearInterval(interval)
+    //   console.log('---sss')
+    // }, 10000);
     this.socket.onmessage = (e:any)=>{
       // console.log(e.data)
      if(count%3 === 0)
@@ -158,7 +204,12 @@ export class GraphsComponent implements OnInit, AfterViewInit {
       this.socket = new WebSocket("ws://localhost:8080");
     }
     console.log('api called')
-    this.socket.send('getData')
+    // this.socket.send('getData')
+  }
+
+  updateChartData1(data:any) {
+    console.log('update called, data', data)
+    this.chart.updateSeries(data);
   }
 
   updateChartData(newData: number) {
@@ -227,6 +278,7 @@ export class GraphsComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     // this.chartData = [10, 20, 30, 40, 50];
     this.socket = new WebSocket("ws://localhost:8080");
+    // this.readCSVFile()
     
   }
 
